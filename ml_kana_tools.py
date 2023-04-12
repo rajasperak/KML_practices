@@ -119,6 +119,21 @@ class selection_facteur(input):
         return gbc
     
     def rfe_approche(self,step=1,k=0):
+        """
+        
+
+        Parameters
+        ----------
+        step : TYPE, optional
+            DESCRIPTION. The default is 1.
+        k : TYPE, optional
+            DESCRIPTION. The default is 0.
+
+        Returns
+        -------
+        features selection pour une classification
+
+        """
         from sklearn.feature_selection import RFE
         from sklearn.metrics import f1_score
         rfe_f1_score = []
@@ -150,6 +165,24 @@ class selection_facteur(input):
             print(selected_feat)
         
     def boruta_approche(self,X_train,X_test,Y_train,Y_test):
+        """
+    
+        Parameters
+        ----------
+        X_train : TYPE
+            DESCRIPTION.
+        X_test : TYPE
+            DESCRIPTION.
+        Y_train : TYPE
+            DESCRIPTION.
+        Y_test : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        pour une classification
+
+        """
         from boruta import BorutaPy
         from sklearn.metrics import f1_score
         gbc = self.model_choisi()
@@ -167,6 +200,9 @@ class selection_facteur(input):
         print(">> Avec un f1-score de :")
         print(boruta_f1_score)
         
+    
+
+        
     def scoring(self,df=pd.DataFrame(),X_train=pd.DataFrame(),X_test=pd.DataFrame(),Y_train=pd.DataFrame(),Y_test=pd.DataFrame()):
         from sklearn.ensemble import GradientBoostingClassifier
         from sklearn.metrics import f1_score
@@ -179,3 +215,100 @@ class selection_facteur(input):
         f1_score_mod = round(f1_score(Y_test,preds,average='weighted'),3)# le poids est pour corriger la difference de frequence entre les labels
         print(f"le score du model avec le dataframe et les facteurs choisi: {f1_score_mod}")
         return f1_score_mod
+    
+    
+    
+class reg_features_selection(object):
+    def __init__(self):
+        print("=== reg_features_selection ===")
+    def model_choisi(self):
+        from sklearn.ensemble import GradientBoostingRegressor
+        gbc = GradientBoostingRegressor(max_depth=5,random_state=42)
+        return gbc
+    def boruta_approche_mse(self,X_train,X_test,Y_train,Y_test):
+        from boruta import BorutaPy
+        from sklearn.metrics import mean_squared_error
+        gbc = self.model_choisi()
+        boruta_selector = BorutaPy(gbc,random_state=42)
+        boruta_selector.fit(np.array(X_train),np.array(Y_train).ravel())
+        sel_x_train = boruta_selector.transform(np.array(X_train))#filtrage ici
+        sel_x_test = boruta_selector.transform(np.array(X_test))
+        gbc.fit(sel_x_train, Y_train.to_numpy().ravel())
+        boruta_preds = gbc.predict(sel_x_test)
+        boruta_mse = mean_squared_error(Y_test.values.ravel(), boruta_preds)
+        selected_feat_mask = boruta_selector.support_
+        selected_feat = X_train.columns[selected_feat_mask]
+        print(">> les caractéristiques à retenir d'après l'approche boruta:")
+        print(selected_feat)
+        print(">> Avec un MSE de :")
+        print(boruta_mse)
+    def rfe_approche(self,X_train, X_test, y_train, y_test, step=1, k=0):
+        """
+        Feature selection using Recursive Feature Elimination (RFE) with cross-validation
+    
+        Parameters
+        ----------
+        step : int, optional
+            The number of features to remove at each iteration. The default is 1.
+        k : int, optional
+            The number of features to select. If set to 0, select the optimal number using cross-validation. The default is 0.
+    
+        Returns
+        -------
+        selected features for regression
+        """
+        from sklearn.feature_selection import RFE
+        from sklearn.metrics import mean_squared_error
+        from sklearn.model_selection import cross_val_score
+        import numpy as np
+        
+        estimateur = self.model_choisi()
+        
+        y_train = y_train.values.ravel()
+        
+        if k == 0:
+            # Cross-validate to find optimal number of features
+            n_features = X_train.shape[1]
+            mse_scores = []
+            for k_feat in range(1, n_features+1):
+                rfe_selector = RFE(estimator=estimateur, n_features_to_select=k_feat, step=step)
+                rfe_selector.fit(X_train, y_train)
+                selected_features_mask = rfe_selector.get_support()
+                selected_features = X_train.columns[selected_features_mask]
+                estimator = self.model_choisi()
+                mse_scores.append(np.mean(-1 * cross_val_score(estimator, X_train[selected_features], y_train.ravel(), scoring='neg_mean_squared_error', cv=5)))
+            optimal_n_features = np.argmin(mse_scores) + 1
+    
+            # Train the model with selected features
+            rfe_selector = RFE(estimator=estimateur, n_features_to_select=optimal_n_features, step=step)
+            rfe_selector.fit(X_train, y_train)
+            selected_features_mask = rfe_selector.get_support()
+            selected_features = X_train.columns[selected_features_mask]
+            X_train_rfe = rfe_selector.transform(X_train)
+            X_test_rfe = rfe_selector.transform(X_test)
+            estimateur.fit(X_train_rfe, y_train)
+            rfe_preds = estimateur.predict(X_test_rfe)
+            mse_rfe = mean_squared_error(y_test, rfe_preds)
+            
+            # Print results
+            print(f'>> Optimal number of features: {optimal_n_features}')
+            print(f'>> Selected features: {list(selected_features)}')
+            print(f'>> MSE with selected features: {mse_rfe:.3f}')
+            
+        else:
+            # Train the model with k selected features
+            rfe_selector = RFE(estimator=estimateur, n_features_to_select=k, step=step)
+            rfe_selector.fit(X_train, y_train)
+            selected_features_mask = rfe_selector.get_support()
+            selected_features = X_train.columns[selected_features_mask]
+            X_train_rfe = rfe_selector.transform(X_train)
+            X_test_rfe = rfe_selector.transform(X_test)
+            estimateur.fit(X_train_rfe, y_train)
+            rfe_preds = estimateur.predict(X_test_rfe)
+            mse_rfe = mean_squared_error(y_test, rfe_preds)
+            
+            # Print results
+            print(f'>> Selected features: {list(selected_features)}')
+            print(f'>> MSE with selected features: {mse_rfe:.3f}')
+
+    

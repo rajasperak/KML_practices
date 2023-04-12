@@ -34,6 +34,9 @@ import plotly.io as pio
 from datetime import datetime
 import random,os,itertools
 from sklearn.decomposition import PCA
+import seaborn as sns
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import matthews_corrcoef
 #from factor_analyzer import FactorAnalyzer
 
 class input:
@@ -665,10 +668,103 @@ class numeric_corr(object):
         df_corr_top.columns = ["col1","col2","coef"]
         df_corr_top = df_corr_top.loc[df_corr_top["col1"]!=df_corr_top["col2"]]
         print(df_corr_top)
-        df_corr_top.coef = df_corr_top.coef.round()
-        print(df_corr_top.head(10))
+        df_corr_top.coef = df_corr_top.coef.round(3)
+        print(df_corr_top.head(20))
+    def plot_heatmap(self):
+        df_corr = self.df_num_only.corr(method='kendall')
+        df_corr_top = df_corr.where(np.triu(np.ones(df_corr.shape), k=1).astype(bool))
+        df_corr_top = df_corr_top.stack().reset_index()
+        df_corr_top.columns = ['col1', 'col2', 'coef']
+        df_corr_top = df_corr_top[df_corr_top['coef'] > 0.5].replace(1, np.nan)
+        df_corr_bottom = df_corr.where(np.tril(np.ones(df_corr.shape), k=-1).astype(bool))
+        df_corr_bottom = df_corr_bottom.stack().reset_index()
+        df_corr_bottom.columns = ['col1', 'col2', 'coef']
+        df_corr_bottom = df_corr_bottom[(df_corr_bottom['coef'] < 0.5)&(df_corr_bottom['coef'] > 0.3)]
         
-  
+        fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        sns.heatmap(df_corr_top.pivot('col1', 'col2', 'coef'), cmap='coolwarm', annot=True, fmt='.2f', ax=axes[0])
+        axes[0].set_title('Variables with correlation > 0.5')
+        sns.heatmap(df_corr_bottom.pivot('col1', 'col2', 'coef'), cmap='coolwarm', annot=True, fmt='.2f', ax=axes[1])
+        axes[1].set_title('Variables with correlation < 0.5')
+        plt.show()
+
+class oneHotencodeur:
+    def __init__(self, df, columns):
+        self.columns = columns
+        self.encoders = {col: LabelEncoder().fit(df[col].astype(str)) for col in self.columns}
+
+    def transform(self, df):
+        df_encoded = pd.DataFrame()
+        for col in self.columns:
+            df_encoded[col] = self.encoders[col].transform(df[col].astype(str))
+        return df_encoded
+
+    def fit(self, df):
+        self.correlations = pd.DataFrame(index=self.columns, columns=self.columns, dtype=float)
+        df_encoded = self.transform(df)
+        return df_encoded
+    
+
+
+class CategoricalCorrelation:
+    def __init__(self, df, columns):
+        self.columns = columns
+        self.encoders = {col: LabelEncoder().fit(df[col].astype(str)) for col in self.columns}
+
+    def transform(self, df):
+        df_encoded = pd.DataFrame()
+        for col in self.columns:
+            df_encoded[col] = self.encoders[col].transform(df[col].astype(str))
+        return df_encoded
+
+    def fit(self, df, threshold=0):
+        self.correlations = pd.DataFrame(index=self.columns, columns=self.columns, dtype=float)
+        df_encoded = self.transform(df)
+        for col1 in self.columns:
+            for col2 in self.columns:
+                if col1 == col2:
+                    self.correlations.loc[col1, col2] = 1.0
+                else:
+                    coef = matthews_corrcoef(df_encoded[col1], df_encoded[col2])
+                    if coef > threshold:
+                        self.correlations.loc[col1, col2] = coef
+                    else:
+                        self.correlations.loc[col1, col2] = 0.0
+        self.high_corr_pairs = [(self.correlations.index[i], self.correlations.columns[j]) 
+                                for i in range(len(self.columns)) for j in range(i+1,len(self.columns)) 
+                                if self.correlations.iloc[i,j] > threshold]
+        print("Pairs with correlation coefficient > threshold:")
+        print(self.high_corr_pairs)
+
+    def get_correlations(self):
+        print("======= get_correlations ========:")
+        return self.correlations
+    
+    def corr_sup(self, threshold):
+        # Sélectionner les paires avec un coefficient de corrélation supérieur au seuil
+        pairs_sup_seuil = self.correlations[self.correlations > threshold].stack().reset_index()
+        pairs_sup_seuil.columns = ['col1', 'col2', 'corr_coef']
+        pairs_sup_seuil = pairs_sup_seuil[pairs_sup_seuil['corr_coef'] != 1.0]
+    
+        # Afficher le nouveau dataframe avec les paires supérieures au seuil
+        print("Pairs with correlation coefficient > threshold:")
+        print(pairs_sup_seuil)
+         # Créer un heatmap pour visualiser les corrélations entre les paires sélectionnées
+        fig, ax = plt.subplots(figsize=(len(pairs_sup_seuil['col1'].unique()), len(pairs_sup_seuil['col2'].unique())))
+        sns.heatmap(pairs_sup_seuil.pivot('col1', 'col2', 'corr_coef'), vmin=-1, vmax=1, cmap='coolwarm', annot=True, ax=ax)
+        ax.set_title('Categorical Correlation Heatmap')
+        plt.show()
+        return pairs_sup_seuil
+
+    def plot_corr(self):
+        fig, ax = plt.subplots(figsize=(len(self.columns), len(self.columns)))
+        sns.heatmap(self.correlations, vmin=-1, vmax=1, cmap='coolwarm', annot=True, ax=ax)
+        ax.set_title('Categorical Correlation Heatmap')
+        plt.show()
+
+
+
+
 
 
 
