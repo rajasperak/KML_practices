@@ -8,10 +8,13 @@ Created on Thu Mar 30 00:39:52 2023
 
 from kana_tools import *
 #from kana_tools import input
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
 class selection_facteur(input):
     """
     class feature selection,
@@ -311,4 +314,41 @@ class reg_features_selection(object):
             print(f'>> Selected features: {list(selected_features)}')
             print(f'>> MSE with selected features: {mse_rfe:.3f}')
 
-    
+class classif_result(object):
+    def __init__(self,y_test,y_pred_test):
+        
+        self.y_true = y_test
+        self.y_pred = y_pred_test
+        
+    def cm(self):
+        cm = confusion_matrix(self.y_true, self.y_pred)
+        print(cm)
+        cm_matrix = pd.DataFrame(data=cm, columns=['Vrai Positive:1', 'Vraie Negative:0'], 
+                                 index=['Estimation Positive:1', 'Estimation Negative:0'])
+
+        sns.heatmap(cm_matrix, annot=True, fmt='d', cmap='YlGnBu')
+        plt.show()
+        print(">> resultat de la classification:")
+        print(classification_report(self.y_true, self.y_pred))
+        TP = cm[0,0]
+        TN = cm[1,1]
+        FP = cm[0,1]
+        FN = cm[1,0]
+        classification_accuracy = (TP + TN) / float(TP + TN + FP + FN)
+        print('Justesse de la Classification (accuracy) : {0:0.4f}'.format(classification_accuracy))
+        print(classification_accuracy)
+        print('Erreurs de Classification : {0:0.4f}'.format(classification_error))
+        classification_error = (FP + FN) / float(TP + TN + FP + FN)
+        print(classification_error)
+        print('Recall ou Sensitivity : {0:0.4f}'.format(recall))
+        recall = TP / float(TP + FN)
+        print(recall)
+        print("taux de faux positive:")
+        false_positive_rate = FP / float(FP + TN)
+        print(false_positive_rate)
+        print('False Positive Rate : {0:0.4f}'.format(false_positive_rate))
+        specificity = TN / (TN + FP)
+        print('Specificity : {0:0.4f}'.format(specificity))
+        print(specificity)
+        
+        

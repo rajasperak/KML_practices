@@ -7,19 +7,19 @@ Created on 1 mars 2023
 
 """
 *********************************** descriptions de l'outils  ****************************************************
-* - class numeric_corr: destiné à analyser la correlation entre les variable numériques                           *     
+* - class numeric_corr: destine à analyser la correlation entre les variable numeriques                           *     
 *                       dans un dataframe                                                                         *
-* - class indep_between_two: destiné à analyser si dépendance ou no il y a entre deux colonnes d'un               *
-*                            dataframe de valeur numériques.                                                      *
-* - class prepocessing: destiné à préparer le dataframe et à avoir une première idée de ce qu'il y a              *
-*                       à l'interieur. il y a quelques fonction qui permet également de faire quelques nettoyage  *
+* - class indep_between_two: destine à analyser si dependance ou no il y a entre deux colonnes d'un               *
+*                            dataframe de valeur numeriques.                                                      *
+* - class prepocessing: destine à preparer le dataframe et à avoir une première idee de ce qu'il y a              *
+*                       à l'interieur. il y a quelques fonction qui permet egalement de faire quelques nettoyage  *
 *                       ajustements.                                                                              *
-* - class reduction_tools : destiné à reduire le nombre de variables à analyser, éliminer les variables corrélées,* 
-*                           pour eventuellement lancer des modèles dessus, pour de meilleurs résultats.           *
-* - class multiv_ana_tools: destiné à creer des tables disjonctifs, des tables de burt, des tests de corrélation  *
+* - class reduction_tools : destine à reduire le nombre de variables à analyser, eliminer les variables correlees,* 
+*                           pour eventuellement lancer des modèles dessus, pour de meilleurs resultats.           *
+* - class multiv_ana_tools: destine à creer des tables disjonctifs, des tables de burt, des tests de correlation  *
 *                           entre des variables mixtes. On aura des outils d'analyse factorielle comme l'ACM,     *
 *                           l'AFDM.                                                                               *
-* - class clustering: destiné à trouver des clusters eventuels. lire la description dans la classe.               *
+* - class clustering: destine à trouver des clusters eventuels. lire la description dans la classe.               *
 ******************************************************************************************************************
 """
 
@@ -37,6 +37,7 @@ from sklearn.decomposition import PCA
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import matthews_corrcoef
+
 #from factor_analyzer import FactorAnalyzer
 
 class input:
@@ -57,16 +58,16 @@ class indep_between_multiple_var(object):
     
     """
         https://asardell.github.io/statistique-python/
-        choisir plus de deux variables quantitatives et verifier s'ils ont une relation linéaire signaficative.
+        choisir plus de deux variables quantitatives et verifier s'ils ont une relation lineaire signaficative.
         le R2 est egale au coef de correlation r2 de pearson dans le cas d'une regression simple.
         ce test n'est donc utile que dans le cadre d'une regression multiple.
         attention, le R2 depend bcp de l'etendu de la variables a expliquer.
         H0: pente nulle, H1: non nulle et significative, relation entre les 2 variables, avec R2(coef de determination)
         ou
-        H0 : Variables indépendantes si p-value > 5%
-        H1 : Variables non indépendantes si p-value < 5%
+        H0 : Variables independantes si p-value > 5%
+        H1 : Variables non independantes si p-value < 5%
         input: dataframe avec les noms des 2 colonnes
-        output: R2, + significativité (p-value)
+        output: R2, + significativite (p-value)
         
     """
     def __init__(self,X,Y):
@@ -83,8 +84,8 @@ class indep_between_multiple_var(object):
 class cross_tab(object):
     """
         outils de visualisation
-        rajout à faire: ajouter la possibilité de prendre un tableau sans var1 et var2
-        et prendre directement les modalités
+        rajout à faire: ajouter la possibilite de prendre un tableau sans var1 et var2
+        et prendre directement les modalites
     """
     def __init__(self,df):
         self.df_ori = df
@@ -94,21 +95,21 @@ class cross_tab(object):
             table de contingence avec les modalites de var1 en index et modalites de var2 en colonne
         """
         crosstab_table = pd.crosstab(self.df_ori[var1],self.df_ori[var2])
-        print("table de contingence entre les modalité des variable {} et {}".format(var1,var2))
+        print("table de contingence entre les modalite des variable {} et {}".format(var1,var2))
         print(crosstab_table)
         return crosstab_table
     
     def t_contin_sum(self,var1,var2):
         """
-            table de contingence avec la somme des modalités de var2 en colonne pour chaque modalité de var1
+            table de contingence avec la somme des modalites de var2 en colonne pour chaque modalite de var1
         """
         sum_crosstab = pd.crosstab(self.df_ori[var1],self.df_ori[var2]).sum()
-        print("table de contingence entre les modalité des variable {} et {}, sommé sur le dernier:".format(var1,var2))
+        print("table de contingence entre les modalite des variable {} et {}, somme sur le dernier:".format(var1,var2))
         print(sum_crosstab)
         return sum_crosstab
     def t_contin_margin(self,var1,var2,agg_margin,margin_name):
         """
-            table de contingence avec les modalités de var2 en colonne pour chaque modalité de var1
+            table de contingence avec les modalites de var2 en colonne pour chaque modalite de var1
             cependant les colonnes marginales sont soit la median, la moyenne ou le total
             agg_margin = np.mean,np.median,
         """
@@ -119,7 +120,7 @@ class cross_tab(object):
         return cross_tab
     def t_contin_margin(self,var1,var2,agg_margin,margin_name):
         """
-            table de contingence avec les modalités de var2 en colonne pour chaque modalité de var1
+            table de contingence avec les modalites de var2 en colonne pour chaque modalite de var1
             cependant les colonnes marginales sont soit la median, la moyenne ou le total
             agg_margin = np.mean,np.median,
         """
@@ -155,16 +156,16 @@ class visualisation(object):
     """ 
 class indep_between_two_cat(object):
     """
-        choisir deux variables qualitatives et verifier s'ils ont une relation linéaire signaficative.
+        choisir deux variables qualitatives et verifier s'ils ont une relation lineaire signaficative.
         faire un test de khi-deux
         input: dataframe avec les noms des 2 colonnes
-        H0 : Variables indépendantes si p-value > 5%
-        H1 : Variables non indépendantes si p-value < 5%
+        H0 : Variables independantes si p-value > 5%
+        H1 : Variables non independantes si p-value < 5%
         attention, le test de khi 2 est sensible à la taille de l'echantillon.
-        pour completer ce dernier, il est utile de calculer le V de Cramer, pour avoir l'intensité du lien entre les deux variables.
+        pour completer ce dernier, il est utile de calculer le V de Cramer, pour avoir l'intensite du lien entre les deux variables.
         c de cramer = square(khi2/(taille_echantillon)*(ddl du tableau)) : √(X2/N) / min(C-1, R-1) où C=nb de col et R nb de ligne
         (entre 0.20 et 0.30==> relation moyenne, au dela==>relation forte)
-        si dependance il y a, il est aussi interessant de voire a traver un heatmap la source de cette dependance et son intensité.
+        si dependance il y a, il est aussi interessant de voire a traver un heatmap la source de cette dependance et son intensite.
         on pourra ainsi voir clairement les cases source de dependance (celle qui sont loin de 0)
         https://openclassrooms.com/fr/courses/7410486-nettoyez-et-analysez-votre-jeu-de-donnees/7428635-analysez-deux-variables-qualitatives-avec-le-chi-2
         output: F-stat,p-value,ddl
@@ -221,16 +222,16 @@ class indep_between_two_cat(object):
 
 class Anova1(object):
     """
-        Anova à 1 facteur: pour tester s'il y a une différence significative entre les moyennes des différentes 
-        modalités de la variable qualitatives.
+        Anova à 1 facteur: pour tester s'il y a une difference significative entre les moyennes des differentes 
+        modalites de la variable qualitatives.
         H0: M1=M2...=Mk
-        H1: il y a au moins un groupe dont la moyenne théorique (population) est différente des autres.
+        H1: il y a au moins un groupe dont la moyenne theorique (population) est differente des autres.
         pour savoir quel est le groupe qui differe des autres, soit faire un test t-test (Mann-Wihtney) paire à paire.
         pour la methode parametrique, les hypotheses à verifier sont:
-        - independance entre les résidis
-        - normalité des résidus
-        - homogénéité de la variance
-        on mettra que 3 modalités sur ce cas. On surchargera la classe si on aura besoin de plus.
+        - independance entre les residis
+        - normalite des residus
+        - homogeneite de la variance
+        on mettra que 3 modalites sur ce cas. On surchargera la classe si on aura besoin de plus.
         
         pour le test non-parametrique: au lieu de la moyenne, on aura affaire aux medianes.
     """
@@ -318,7 +319,7 @@ class reduction_tools(object):
         # variance explique par les composantes
         self.a_explained_variance = pca.explained_variance_ratio_
         explained_variance = pd.Series(dict(zip(X_pca.columns,100*self.a_explained_variance)))
-        explained_variance.plot(kind="bar",figsize=(15,4),rot=90,ylabel='variance expliquée (%)')
+        explained_variance.plot(kind="bar",figsize=(15,4),rot=90,ylabel='variance expliquee (%)')
         if b_plot:
             plt.show()
         return a_X_pca
@@ -335,7 +336,7 @@ class reduction_tools(object):
                 fig = px.scatter_3d(
                     self.acp(),
                     x=0,y=1,z=2,
-                    title=f'Variance total expliquée par la projection linéaire (ACP): {total_var: .2f}% [PC1({var_pc1}%),PC2({var_pc2}%),PC3({var_pc3}%)]',
+                    title=f'Variance total expliquee par la projection lineaire (ACP): {total_var: .2f}% [PC1({var_pc1}%),PC2({var_pc2}%),PC3({var_pc3}%)]',
                     labels={'0':'PC 1','1':'PC 2','2':'PC 3'}
                 
                     )
@@ -343,7 +344,7 @@ class reduction_tools(object):
                 fig = px.scatter_3d(
                     self.acp(),
                     x=0,y=1,z=2,
-                    title=f'Variance total expliquée par la projection linéaire (ACP): {total_var: .2f}% [PC1({var_pc1}%),PC2({var_pc2}%),PC3({var_pc3}%)]',
+                    title=f'Variance total expliquee par la projection lineaire (ACP): {total_var: .2f}% [PC1({var_pc1}%),PC2({var_pc2}%),PC3({var_pc3}%)]',
                     labels={'0':'PC 1','1':'PC 2','2':'PC 3'},
                     color = self.labels_series
                 
@@ -359,9 +360,9 @@ class reduction_tools(object):
             from pprint import pprint
             pprint(labels)
             if not self.labels_series.empty:
-                fig = px.scatter_matrix(self.acp(),labels=labels,dimensions=range(nb_comp),color = self.labels_series, title="Projection linéaire (ACP) sur les différentes composantes principales:")
+                fig = px.scatter_matrix(self.acp(),labels=labels,dimensions=range(nb_comp),color = self.labels_series, title="Projection lineaire (ACP) sur les differentes composantes principales:")
             else:
-                fig = px.scatter_matrix(self.acp(),labels=labels,dimensions=range(nb_comp),title="Projection linéaire (ACP) sur les différentes composantes principales:")
+                fig = px.scatter_matrix(self.acp(),labels=labels,dimensions=range(nb_comp),title="Projection lineaire (ACP) sur les differentes composantes principales:")
             fig.update_traces(diagonal_visible=False)
             plot(fig, auto_open=True,filename="pca_plot_2d.html")
     def Draw_arrow(self,fig,l_X,l_Y,i,label):
@@ -485,7 +486,7 @@ class reduction_tools(object):
         pca_res = pca.fit_transform(self.df_cible)
         cb_var = pd.Series(pca.explained_variance_ratio_)
         plt.clf()
-        cb_var.plot(kind='bar',title=" valeurs propres par ordre decroissante (VP associées aux Vect ppes et aux axes maximisant la variance des données):")
+        cb_var.plot(kind='bar',title=" valeurs propres par ordre decroissante (VP associees aux Vect ppes et aux axes maximisant la variance des donnees):")
         plt.show()
         coef = np.transpose(pca.components_)
         cols = [x for x in range(len(cb_var))]
@@ -584,16 +585,16 @@ class reduction_tools(object):
         print("******************** tsne ******************")
         print(df_tsne)
         if nb_comp==2 and self.labels_series.empty==False:
-            fig = px.scatter(a_tsne,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},color = self.labels_series,title=f"Réduction de dimension probabiliste : avec une divergence de kullback-Leibler de : {div_tsne:.3f}")
+            fig = px.scatter(a_tsne,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},color = self.labels_series,title=f"Reduction de dimension probabiliste : avec une divergence de kullback-Leibler de : {div_tsne:.3f}")
             plot(fig, auto_open=True,filename="tSNE_plot_2d.html")
         elif nb_comp==2 and self.labels_series.empty:
-            fig = px.scatter(a_tsne,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},title=f"Réduction de dimension probabiliste: avec une divergence de kullback-Leibler de : {div_tsne:.3f}")
+            fig = px.scatter(a_tsne,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},title=f"Reduction de dimension probabiliste: avec une divergence de kullback-Leibler de : {div_tsne:.3f}")
             plot(fig, auto_open=True,filename="tSNE_plot_2d.html")
         elif nb_comp==3 and self.labels_series.empty:
             fig = px.scatter_3d(
                     a_tsne,
                     x=0,y=1,z=2,
-                    title=f'Réduction de dimension probabiliste (T-sNE): avec une divergence de kullback-Leibler de : {div_tsne:.3f}',
+                    title=f'Reduction de dimension probabiliste (T-sNE): avec une divergence de kullback-Leibler de : {div_tsne:.3f}',
                     labels={'0':'DIM 1','1':'DIM 2','2':'DIM 3'},
                 
                     )
@@ -602,7 +603,7 @@ class reduction_tools(object):
             fig = px.scatter_3d(
                     a_tsne,
                     x=0,y=1,z=2,
-                    title=f'Réduction de dimension probabiliste (T-sNE): avec une divergence de kullback-Leibler de : {div_tsne:.3f}',
+                    title=f'Reduction de dimension probabiliste (T-sNE): avec une divergence de kullback-Leibler de : {div_tsne:.3f}',
                     labels={'0':'DIM 1','1':'DIM 2','2':'DIM 3'},
                     color = self.labels_series
                 
@@ -622,16 +623,16 @@ class reduction_tools(object):
         print("******************** X_umap ******************")
         print(X_umap)
         if nb_comp==2 and self.labels_series.empty==False:
-            fig = px.scatter(a_X_umap,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},color = self.labels_series,title="Réduction de dimension probabiliste (UMAP) :")
+            fig = px.scatter(a_X_umap,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},color = self.labels_series,title="Reduction de dimension probabiliste (UMAP) :")
             plot(fig, auto_open=True,filename="UMAP_plot_2d.html")
         elif nb_comp==2 and self.labels_series.empty:
-            fig = px.scatter(a_X_umap,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},title="Réduction de dimension probabiliste (UMAP) :")
+            fig = px.scatter(a_X_umap,x=0,y = 1,labels={'0':'DIM 1','1':'DIM 2'},title="Reduction de dimension probabiliste (UMAP) :")
             plot(fig, auto_open=True,filename="UMAP_plot_2d.html")
         elif nb_comp==3 and self.labels_series.empty:
             fig = px.scatter_3d(
                     a_X_umap,
                     x=0,y=1,z=2,
-                    title="Réduction de dimension probabiliste (UMAP) :",
+                    title="Reduction de dimension probabiliste (UMAP) :",
                     labels={'0':'DIM 1','1':'DIM 2','2':'DIM 3'},
                 
                     )
@@ -640,7 +641,7 @@ class reduction_tools(object):
             fig = px.scatter_3d(
                     a_X_umap,
                     x=0,y=1,z=2,
-                    title="Réduction de dimension probabiliste (UMAP) :",
+                    title="Reduction de dimension probabiliste (UMAP) :",
                     labels={'0':'DIM 1','1':'DIM 2','2':'DIM 3'},
                     color = self.labels_series
                 
@@ -656,8 +657,8 @@ class numeric_corr(object):
        
         self.df_num_only = df_data.select_dtypes(include=np.number)
     def visu_data(self):
-        print(self.data)
-        print(self.data.dtypes)
+        print(self.df_num_only)
+        print(self.df_num_only.dtypes)
     def corr_numeric(self):
         df_num_only = self.df_num_only.select_dtypes(include=np.number)
         #print(df_num_only)
@@ -741,15 +742,15 @@ class CategoricalCorrelation:
         return self.correlations
     
     def corr_sup(self, threshold):
-        # Sélectionner les paires avec un coefficient de corrélation supérieur au seuil
+        # Selectionner les paires avec un coefficient de correlation superieur au seuil
         pairs_sup_seuil = self.correlations[self.correlations > threshold].stack().reset_index()
         pairs_sup_seuil.columns = ['col1', 'col2', 'corr_coef']
         pairs_sup_seuil = pairs_sup_seuil[pairs_sup_seuil['corr_coef'] != 1.0]
     
-        # Afficher le nouveau dataframe avec les paires supérieures au seuil
+        # Afficher le nouveau dataframe avec les paires superieures au seuil
         print("Pairs with correlation coefficient > threshold:")
         print(pairs_sup_seuil)
-         # Créer un heatmap pour visualiser les corrélations entre les paires sélectionnées
+         # Creer un heatmap pour visualiser les correlations entre les paires selectionnees
         fig, ax = plt.subplots(figsize=(len(pairs_sup_seuil['col1'].unique()), len(pairs_sup_seuil['col2'].unique())))
         sns.heatmap(pairs_sup_seuil.pivot('col1', 'col2', 'corr_coef'), vmin=-1, vmax=1, cmap='coolwarm', annot=True, ax=ax)
         ax.set_title('Categorical Correlation Heatmap')
@@ -784,7 +785,7 @@ class ana_factoriel(object):
         
         fig.update_layout(
             title={
-                'text': "Graphe de l'AFC avec les individus supplémentaires:",
+                'text': "Graphe de l'AFC avec les individus supplementaires:",
                 'y':0.95,
                 'x':0.5,
                 'xanchor': 'center',
@@ -832,9 +833,9 @@ class ana_factoriel(object):
         #graphique des valeurs propres:
         print("------- plot des valeurs propres ------")
         i_ca.plot_eigenvalues()
-        #Analyse des modalités lignes
-        print("------ Analyse des modalités lignes-------")
-        print(">> recupération des infos lignes:")
+        #Analyse des modalites lignes
+        print("------ Analyse des modalites lignes-------")
+        print(">> recuperation des infos lignes:")
         infos_lignes = i_ca.row_topandas()
         print(infos_lignes.head(5))
         #carte des individus:
@@ -853,13 +854,13 @@ class ana_factoriel(object):
         sum_ligne = df_actives.sum(axis=0)
         profil_marginal = sum_ligne/sum_tot
         print(profil_marginal)
-        print("------ Analyse des modalités colonnes-------")
+        print("------ Analyse des modalites colonnes-------")
         infos_col = i_ca.col_topandas()
         print(infos_col)
         #carte des colonnes:
         print("cartes des colonnes:")
         i_ca.mapping_col(num_x_axis=1,num_y_axis=2)
-        #carte simultanées:
+        #carte simultanees:
         print("------ Analyse simultanee-------")
         i_ca.mapping(num_x_axis=1,num_y_axis=2)
         print("------ Decomposition du khi2-------")
@@ -899,10 +900,10 @@ class ana_factoriel(object):
             print(df_coord_tot)
             fig = self.plot_coord(df_coord_tot,color="black")
             fig2 = self.plot_coord(infos_col.iloc[:,0:2],x='col_coord_dim1',y='col_coord_dim2',color='green')
-            #fig.update_layout(title="Graphes simultanées avec les ind supplémentaires:")
+            #fig.update_layout(title="Graphes simultanees avec les ind supplementaires:")
             
             fig.add_traces(fig2.data)
-            fig.update_layout(title="Graphes simultanées avec les ind supplémentaires:")
+            fig.update_layout(title="Graphes simultanees avec les ind supplementaires:")
             plot(fig, auto_open=True,filename="ANALYSE DES CORRESPONDANCES(SORTIE).html")
             
     def mca(self):
@@ -916,7 +917,7 @@ class ana_factoriel(object):
         my_mca.fit(df_actives.values)
         my_mca.plot_eigenvalues()
         my_mca.plot_eigenvalues(type="cumulative")
-        print(">>>>>>> les coordonnées des points lignes:(my_mca.row_coord_)")
+        print(">>>>>>> les coordonnees des points lignes:(my_mca.row_coord_)")
         print(my_mca.row_coord_)
         print(">>>>>>> les contributions des profils lignes: (my_mca.row_contrib_)")
         print(my_mca.row_contrib_)
@@ -924,7 +925,7 @@ class ana_factoriel(object):
         print(my_mca.row_cos2_)
         print(">>>>>>> les stats des profils lignes:")
         print(my_mca.row_topandas())
-        print(">>>>>>> les coordonnées des variables :(my_mca.col_coord_)")
+        print(">>>>>>> les coordonnees des variables :(my_mca.col_coord_)")
         print(my_mca.col_coord_)
         print(">>>>>>> les contributions des variables: (my_mca.col_contrib_)")
         print(my_mca.col_contrib_)
@@ -935,8 +936,8 @@ class ana_factoriel(object):
         # Mapping des points lignes
         my_mca.mapping_row(num_x_axis=1, num_y_axis=2)
         # Classement des points lignes en fonction de leur contribution au 1er axe
-        # Le paramètre de la méthode plot_row_contrib indique que c'est pour l'axe numéro 1 que les contributions sont ici 
-        # représentées
+        # Le paramètre de la methode plot_row_contrib indique que c'est pour l'axe numero 1 que les contributions sont ici 
+        # representees
         my_mca.plot_row_contrib(num_axis=1)
         # Classement des points lignes en fonction de leur cos2 sur le 1er axe
         my_mca.plot_row_cos2(num_axis=1)
@@ -946,7 +947,7 @@ class ana_factoriel(object):
         my_mca.plot_col_contrib(num_axis=1)
         # Classement des points colonnes en fonction de leur cos2 sur le 1er axe
         my_mca.plot_col_cos2(num_axis=1)
-        #graphes simultanées
+        #graphes simultanees
         my_mca.mapping(num_x_axis=1, num_y_axis=2, short_labels=False,figsize=(10, 8))
         
 class FAMDP(object):
@@ -991,8 +992,8 @@ class famd_prince(reduction_tools):
         Parameters
         ----------
         nb_composante : INT, optional
-        meth_choice : 'famd' ou 'MFA'. quand la variable qualitative a 2 modalité, préféré la famd, sinon
-                      il est préférable d'utiliser la meth MFA
+        meth_choice : 'famd' ou 'MFA'. quand la variable qualitative a 2 modalite, prefere la famd, sinon
+                      il est preferable d'utiliser la meth MFA
             DESCRIPTION. The default is 0.
 
         Returns
@@ -1007,55 +1008,55 @@ class famd_prince(reduction_tools):
     def get_coord(self,col_label_name=""):
         import prince
         df = self.df_cible.copy()
-        # Sélectionner les colonnes catégorielles
+        # Selectionner les colonnes categorielles
         col_categoric = df.select_dtypes(include=['object']).columns
         
-        # Sélectionner les colonnes numériques
+        # Selectionner les colonnes numeriques
         col_numeric = df.select_dtypes(include=['int64', 'float64']).columns
         
-        # Remplacer les valeurs manquantes par la médiane des valeurs numériques
+        # Remplacer les valeurs manquantes par la mediane des valeurs numeriques
         df[col_numeric] = df[col_numeric].fillna(df[col_numeric].median())
         
-        # Remplacer les valeurs manquantes par "inconnu" pour les colonnes catégorielles
+        # Remplacer les valeurs manquantes par "inconnu" pour les colonnes categorielles
         df[col_categoric] = df[col_categoric].fillna("inconnu")
         
-        # Initialiser l'AFDM avec le nombre de dimensions souhaité
+        # Initialiser l'AFDM avec le nombre de dimensions souhaite
         if self.meth == 'MFA':
             print("============== methode MFA choisi: =============")
             af = prince.MFA(n_components=2,groups={"categorical":col_categoric})
-            # Ajuster l'AFDM sur les données mixtes
+            # Ajuster l'AFDM sur les donnees mixtes
             af = af.fit(df)
-            # Récupérer les coordonnées des lignes dans l'espace factoriel
+            # Recuperer les coordonnees des lignes dans l'espace factoriel
             coordinates = af.row_coordinates(df)
-            # Afficher les résultats
+            # Afficher les resultats
             print(coordinates.head())
             plt.scatter(coordinates[0], coordinates[1])
             plt.xlabel('Axe factoriel 1 (' + str(round(af.explained_inertia_[0]*100, 2)) + '% d\'inertie)')
             plt.ylabel('Axe factoriel 2 (' + str(round(af.explained_inertia_[1]*100, 2)) + '% d\'inertie)')
-            plt.title('Nuage de points des coordonnées des lignes dans l\'espace factoriel')
+            plt.title('Nuage de points des coordonnees des lignes dans l\'espace factoriel')
             plt.show()
         else:
             print("============== methode FAMD choisi: =============")
             af = prince.FAMD(n_components=self.nb_compo,n_iter=self.nb_iter,random_state=101)
             af = af.fit(df)
-            # Ajuster l'AFDM sur les données mixtes
+            # Ajuster l'AFDM sur les donnees mixtes
             af.plot_row_coordinates(df,figsize=(15, 10),color_labels=['{} : {}'.format(col_label_name,t) for t in df[col_label_name]] )
-            # Récupérer les coordonnées des lignes dans l'espace factoriel
+            # Recuperer les coordonnees des lignes dans l'espace factoriel
             coordinates = af.row_coordinates(df)
-            # Afficher les résultats
+            # Afficher les resultats
             print(coordinates.head())
             return af
             
     def plot_mfa_3d(df):
         import prince
-        # Réaliser une analyse factorielle multiple
+        # Realiser une analyse factorielle multiple
         mfa = prince.MFA(n_components=3, n_iter=3, copy=True, check_input=True, engine='auto', random_state=101)
         mfa.fit(df)
     
-        # Récupérer les coordonnées des individus dans l'espace factoriel
+        # Recuperer les coordonnees des individus dans l'espace factoriel
         coordinates = mfa.row_coordinates(df)
     
-        # Créer la figure 3D
+        # Creer la figure 3D
         fig = go.Figure(data=[go.Scatter3d(
             x=coordinates.iloc[:, 0],
             y=coordinates.iloc[:, 1],
@@ -1064,12 +1065,12 @@ class famd_prince(reduction_tools):
             marker=dict(
                 size=5,
                 color=coordinates.iloc[:, 2],  # Colorier selon la troisième composante
-                colorscale='Viridis',           # Utiliser l'échelle de couleurs Viridis
+                colorscale='Viridis',           # Utiliser l'echelle de couleurs Viridis
                 opacity=0.8
             )
         )])
     
-        # Ajouter les titres et les étiquettes des axes
+        # Ajouter les titres et les etiquettes des axes
         fig.update_layout(scene=dict(
             xaxis_title='Axe factoriel 1 (' + str(round(mfa.explained_inertia_[0]*100, 2)) + '% d\'inertie)',
             yaxis_title='Axe factoriel 2 (' + str(round(mfa.explained_inertia_[1]*100, 2)) + '% d\'inertie)',
@@ -1083,7 +1084,7 @@ class famd_prince(reduction_tools):
     
 class Clustering(object):
     "developper une classe qui prend les resultat d'un acp, acm,fadm pour faire une classification grossiere avec un kmeans et ensuite une classification par arrbre"
-    "cree une classe herité de reduction_tools pour pouvoir utiliser directement les fonctions et attributs"
+    "cree une classe herite de reduction_tools pour pouvoir utiliser directement les fonctions et attributs"
         
 def main(meth='pca'):    
     

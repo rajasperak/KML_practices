@@ -8,6 +8,8 @@ Created on 9 avr. 2023
 
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder,OneHotEncoder,StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -16,8 +18,13 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import accuracy_score
+import xgboost as xgb
 
-df_churn = pd.read_csv(r'/home/ric/Téléchargements/Churn_Modelling.csv',sep=",")
+from kana_tools import CategoricalCorrelation,numeric_corr
+from ml_kana_tools import classif_result
+#df_churn = pd.read_csv(r'/home/ric/Telechargements/Churn_Modelling.csv',sep=",") #desktop linux mint
+df_churn = pd.read_csv(r'C:\Users\karl\Documents\datasets\Churn_Modelling.csv',sep=",") # desktop win10
 print(df_churn.dtypes)
 
 def encode_ohe(df,numeric_cols,categorical_cols):
@@ -147,41 +154,115 @@ def predict(classifier,x_test):
 
 
 
+def train_xgb_model(x_train,y_train):
+    """
+    Training du model xgboost
+
+    Parameters:
+    x_train: pandas DataFrame
+        Training data features.
+    y_train: pandas Series
+        Training data labels.
+
+    Returns:
+    model: trained XGBoost classification model
+    """
+    model = xgb.XGBClassifier(
+        learning_rate=0.1,
+        max_depth=6,
+        min_child_weight=1,
+        n_estimators=100,
+        objective='binary:logistic',
+        subsample=0.8,
+        colsample_bytree=0.8,
+        seed=42
+    )
+    model.fit(x_train, y_train)
+    return model
+
+def predict_xgboost(classifier,x_test):
+    """
+    partie prediction.
+
+    """
+    predictions = classifier.predict(x_test)
+    return predictions
 
 
 
-
-# preprocessing des donnees:
-
-X = df_churn.iloc[:,3:13]
-y =  df_churn.iloc[:,13]
-print(X.dtypes)
-l_cat_col = ["Geography","Gender"]
-l_num_col = ["CreditScore","Age","Tenure","Balance","NumOfProducts","HasCrCard","IsActiveMember","EstimatedSalary"]
-print(X.shape)
-df_new = encode_ohe(X, l_num_col, l_cat_col)
-df_new["Exited"] = y
-print(df_new)
-x_train,x_test,y_train,y_test = split_data(df_new,["Exited"])
-print(x_train)
-print(x_train.shape)
-# train et predict du model de classification:
-#classi =train_rna_model(x_train, y_train)
-#predict(classi,x_test)
-
-
-
-# Cr�er un dictionnaire des hyperparam�tres � tester
-param_grid = {'optimizer': ['rmsprop', 'adam'], 'init': ['glorot_uniform', 'normal', 'uniform'], 'epochs': [50, 100, 150], 'batch_size': [5, 10, 20]}
-
-# Cr�er un objet KerasClassifier
-model = KerasClassifier(build_fn=create_model)
-
-# Cr�er un objet RandomizedSearchCV
-grid = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=10)
-
-# Ajuster le mod�le aux donn�es d'entra�nement
-grid.fit(np.array(x_train), np.array(y_train))
-
-# Afficher les meilleurs param�tres
-print(grid.best_params_)
+def global_run(df_churn,meth_to_run=""):
+    
+    X = df_churn.iloc[:,3:13]
+    y =  df_churn.iloc[:,13]
+    print(X.dtypes)
+    l_cat_col = ["Geography","Gender"]
+    l_num_col = ["CreditScore","Age","Tenure","Balance","NumOfProducts","HasCrCard","IsActiveMember","EstimatedSalary"]
+    print(X.shape)
+    print(round(X[l_num_col].describe(),2))
+    df_new = encode_ohe(X, l_num_col, l_cat_col)
+    df_new["Exited"] = y
+    print(df_new)
+    x_train,x_test,y_train,y_test = split_data(df_new,["Exited"])
+    print(x_train)
+    print(x_train.shape)
+    try:
+        i_corr_cat = CategoricalCorrelation(df_churn,l_cat_col)
+        i_corr_cat.fit(df_churn,threshold=0.3)
+        i_corr_cat.corr_sup(threshold=0.3)
+    except:
+        print("pas de correlation superieur a 0.5 entre les variables selectionnees")
+    try:
+        i_corr_num = numeric_corr(X[l_num_col])
+        i_corr_num.visu_data()
+        i_corr_num.corr_numeric()
+        i_corr_num.plot_heatmap()
+    except:
+        print("il semble qu'on a pas suffisament de colonne correles!")
+        
+    if meth_to_run=="rna":
+        # preprocessing des donnees:
+        
+        #train et predict du model de classification:
+        classi =train_rna_model(x_train, y_train)
+        predict(classi,x_test)
+        
+        
+    elif meth_to_run=="cv_rna": 
+        # Creer un dictionnaire des hyperparametres a tester
+        param_grid = {'optimizer': ['rmsprop', 'adam'], 'init': ['glorot_uniform', 'normal', 'uniform'], 'epochs': [50, 100, 150], 'batch_size': [5, 10, 20]}
+        
+        # Creer un objet KerasClassifier
+        model = KerasClassifier(build_fn=create_model)
+        
+        # Creer un objet RandomizedSearchCV
+        grid = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=10)
+        
+        # Ajuster le modele aux donnees d'entrainement
+        grid.fit(np.array(x_train), np.array(y_train))
+        
+        # Afficher les meilleurs parametres
+        print(grid.best_params_)
+        
+    elif meth_to_run=="reg_log":
+        from sklearn.linear_model import LogisticRegression
+        log_reg = LogisticRegression(C=0.01,solver='liblinear',random_state=0)
+        log_reg.fit(x_train,y_train)
+        y_pred_test = log_reg.predict(x_test)
+        print("print y_pred_test:")
+        print(y_pred_test)
+        a_prob = log_reg.predict_proba(x_test)
+        print("Model accuracy score pour le model de regression logistique:")
+        print(accuracy_score(y_test,y_pred_test))
+        print("verification des proportions de sortie ou non:")
+        print(y_test.value_counts())
+        print("matrice de confusion:")
+        classif_result(y_test,y_pred_test).cm()
+    
+    elif meth_to_run=="xgboost":
+        model =train_xgb_model(x_train,y_train)
+        y_pred = predict_xgboost(model, x_test) 
+        acc = accuracy_score(y_test,y_pred)  
+        print("accuracy du model:")
+        print(acc)
+#===================================== main ======================================================================
+global_run(df_churn,meth_to_run="xgboost")   
