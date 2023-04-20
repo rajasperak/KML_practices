@@ -17,7 +17,7 @@ from sklearn.impute import SimpleImputer
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV,train_test_split
 from sklearn.metrics import accuracy_score
 import xgboost as xgb
 
@@ -26,7 +26,7 @@ from ml_kana_tools import classif_result
 #df_churn = pd.read_csv(r'/home/ric/Telechargements/Churn_Modelling.csv',sep=",") #desktop linux mint
 df_churn = pd.read_csv(r'C:\Users\karl\Documents\datasets\Churn_Modelling.csv',sep=",") # desktop win10
 print(df_churn.dtypes)
-
+path_out = r'C:\Users\karl\Documents\datasets'
 def encode_ohe(df,numeric_cols,categorical_cols):
     """
     fonction qui permet d encoder les variables categorielles et de standardiser les variables numerique
@@ -108,7 +108,7 @@ def train_rna_model(x_train,y_train,optimizer="adam",init="uniform"):
     return classifier
 
 
-def create_model(optimizer='adam', init='glorot_uniform'):
+def create_model(x_train,y_train,optimizer='adam', init='glorot_uniform'):
     '''
 
     Returns
@@ -125,8 +125,40 @@ def create_model(optimizer='adam', init='glorot_uniform'):
     classifier.fit(x_train,y_train,batch_size=10,epochs=100)
     return classifier
 
+def param_search(x_train,y_train):
+    from keras.callbacks import EarlyStopping,ModelCheckpoint
+    from keras.layers import Dense
+    from keras.models import Sequential
+    xtrain,xvalid,ytrain,yvalid = train_test_split(x_train, y_train, test_size=0.2, random_state=0)
+    
+    classifier = Sequential()
+    classifier.add(Dense(units=6,kernel_initializer="glorot_uniform",activation='relu',input_dim=x_train.shape[1]))
+    classifier.add(Dense(units=6,kernel_initializer="glorot_uniform",activation='relu'))
+    classifier.add(Dense(units=1,kernel_initializer="glorot_uniform",activation='sigmoid'))
+    classifier.compile(optimizer="adam",loss = 'binary_crossentropy',metrics=["accuracy"])
+    callback_a = ModelCheckpoint(filepath=path_out+'\best_rna_model_churn.hdf5',monitor='binary_crossentropy',save_best_only=True,save_weights_only=True)
+    callback_b = EarlyStopping(monitor='binary_crossentropy',mode='min',patience=20,verbose=1)
+    historique = classifier.fit(xtrain,ytrain,validation_data=(xvalid,yvalid),epochs=300,batch_size=10,callbacks=[callback_a,callback_b])
+    print(">> history['accuracy']")
+    print(historique.history['accuracy'])
+    print(">> history['val_accuracy'] ")
+    print(historique.history['val_accuracy'])
+    plt.plot(historique.history['accuracy'])
+    plt.plot(historique.history['val_accuracy'])
+    plt.title('Exactitude du modele:')
+    plt.ylabel('Accuracy')
+    plt.xlabel('epochs')
+    plt.legend(['training data','validation data'],loc='lower right')
+    plt.show()
+    plt.plot(historique.history['loss'])
+    plt.plot(historique.history['val_loss'])
+    plt.title('Perte du modele:')
+    plt.ylabel('Perte')
+    plt.xlabel('epochs')
+    plt.legend(['training data','validation data'],loc='lower right')
+    plt.show()
 
-def predict(classifier,x_test):
+def predict(classifier,x_test,y_test):
     """
     
 
@@ -242,7 +274,8 @@ def global_run(df_churn,meth_to_run=""):
         
         # Afficher les meilleurs parametres
         print(grid.best_params_)
-        
+    elif meth_to_run=="rna_parms":
+        param_search(x_train, y_train)    
     elif meth_to_run=="reg_log":
         from sklearn.linear_model import LogisticRegression
         log_reg = LogisticRegression(C=0.01,solver='liblinear',random_state=0)
