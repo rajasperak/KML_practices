@@ -3,24 +3,29 @@
 ![data](https://img.freepik.com/vecteurs-libre/illustration-rpa-design-plat-dessine-main_23-2149277643.jpg?size=626&ext=jpg)
 
 **k** (karl) **ML**(machine learning): 
-======================================
+
+--------------------------------------
+
 - churn_classif.py: preprocessing, approche avec un modele adaboost, gradientBoosting et reseau de neuronne.
 - churn_classification_model_exploration.ipynb: exploration des divers modeles et hyperparametres pour optimiser les resultats de la classification.
 - churn_model_choice.ipynb: notebook de bunchmark entre les models
 
 **contenus**:
-============
+
+------------
+
 dataset qui ont déjà été travaillé et nettoyés
 -  dataset house pricing pour la regression
 -  dataset detection de  pour la classification.
 -  dataset classification des résiliation
 
 **details**:
-============
+
+------------
 
 - churn_classif.py:
 
--------------------
+===================
 script dans un ide au lieu d'un notebook, en vue d'une industrialisation du traitement et analyses.
 cela donne également une bonne pratique pour rendre le code le plus générique possible.
 
@@ -45,7 +50,7 @@ Après ceci, j'aurais les hyper-paramètre nécessaire pour le fournir à train_
 
 - chun_classification_model_exploring.ipynb:
 
---------------------------------------------
+============================================
 
 phase exploratoire des divers models et tunning des hyper-parametres:
 . modele random forest
@@ -55,7 +60,7 @@ phase exploratoire des divers models et tunning des hyper-parametres:
 
 - churn_model_choice.ipynb:
 
----------------------------
+===========================
 
 . validation croisée sur le pipeline de modèle, composé d'une regression logistique avec differente fonction de pénalité (même si le solver lbfgs n'est 
 pas compatible avec la régularisation L1), un classifier random forest avec differente critère de qualité de l'elagage, en l'occurence, je choisi plutot
