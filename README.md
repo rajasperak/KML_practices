@@ -24,7 +24,6 @@ dataset qui ont déjà été travaillé et nettoyés
 ------------
 
 - churn_classif.py:
-
 ===================
 script dans un ide au lieu d'un notebook, en vue d'une industrialisation du traitement et analyses.
 cela donne également une bonne pratique pour rendre le code le plus générique possible.
@@ -49,7 +48,6 @@ Après ceci, j'aurais les hyper-paramètre nécessaire pour le fournir à train_
 
 
 - chun_classification_model_exploring.ipynb:
-
 ============================================
 
 phase exploratoire des divers models et tunning des hyper-parametres:
@@ -59,7 +57,6 @@ phase exploratoire des divers models et tunning des hyper-parametres:
 
 
 - churn_model_choice.ipynb:
-
 ===========================
 
 . validation croisée sur le pipeline de modèle, composé d'une regression logistique avec differente fonction de pénalité (même si le solver lbfgs n'est 
